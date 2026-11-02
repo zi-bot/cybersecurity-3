@@ -1,0 +1,45 @@
+# Praktikum 3 (BAB 3) — KERANGKA DARI DOSEN
+#
+# Rancangan awal ini baru memisahkan DUA zona:
+#   zona-web  : menghadap pengguna (DMZ)
+#   zona-data : internal, terisolasi
+#
+# TUGAS ANDA (Langkah 1 modul): lengkapi menjadi TIGA zona dengan menambahkan
+#   - jaringan  `zona-admin`
+#   - kontainer `admin`
+# sehingga menjadi empat kontainer: web, app, db, admin.
+#
+# Perhatikan: `app` sengaja berada di DUA jaringan, karena hanya lapisan
+# aplikasi yang boleh menjangkau basis data. Itulah yang harus Anda buktikan.
+#
+# Catatan pengamanan: port web diikat ke 127.0.0.1 (hanya laptop Anda sendiri),
+# bukan ke seluruh jaringan. Ini penghalang agar laboratorium tidak terekspos
+# ke jaringan kampus. Jangan mengubahnya menjadi "0.0.0.0" atau menghapus
+# bagian "127.0.0.1:".
+
+services:
+  web:
+    image: nginx:alpine
+    container_name: lab3-web
+    networks: [zona-web]
+    ports:
+      - "127.0.0.1:8080:80"
+
+  app:
+    image: alpine:latest
+    container_name: lab3-app
+    command: sh -c "apk add --no-cache curl iproute2 && sleep 3600"
+    networks: [zona-web, zona-data]
+
+  db:
+    image: postgres:16-alpine
+    container_name: lab3-db
+    environment:
+      # Kredensial dummy khusus laboratorium. JANGAN disalin ke laporan.
+      POSTGRES_PASSWORD: dummy_saja
+    networks: [zona-data]
+
+networks:
+  zona-web:
+  zona-data:
+    internal: true

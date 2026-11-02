@@ -1,0 +1,25 @@
+# fail2ban — jail lokal untuk Praktikum 3 (BAB 3)
+# Alternatif Suricata. Baca README.md di folder ini lebih dahulu.
+#
+# Prasyarat: berkas /var/log/lab3/access.log benar-benar terisi.
+
+[DEFAULT]
+# Jangan pernah memban alamat loopback host Anda sendiri.
+# CATATAN PENTING: JANGAN memasukkan subnet Docker (172.16.0.0/12) ke ignoreip,
+# karena kontainer lab3-admin berada pada rentang tersebut. Jika rentang itu
+# diabaikan, percobaan pemindaian dari lab3-admin tidak akan pernah diban.
+ignoreip = 127.0.0.1/8 ::1
+
+bantime  = 120
+findtime = 60
+maxretry = 8
+
+[lab3-probe]
+enabled  = true
+filter   = lab3-probe
+logpath  = /var/log/lab3/access.log
+port     = http,https
+maxretry = 8
+findtime = 60
+bantime  = 120
+action   = iptables-allports[name=lab3-probe]

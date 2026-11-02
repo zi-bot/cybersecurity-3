@@ -1,0 +1,32 @@
+# Override UJI PEMINDAIAN (BAB 3) — KHUSUS DOSEN / SESI TERKENDALI
+#
+# Modul meminta pemindaian dijalankan "dari kontainer admin", sementara
+# checkpoint meminta kontainer admin HANYA berada di zona-admin. Kedua hal itu
+# tidak dapat dipenuhi sekaligus: kontainer di zona-admin tidak punya rute ke
+# zona-web maupun zona-data.
+#
+# Berkas override ini menyelesaikan pertentangan tersebut secara eksplisit:
+# kontainer admin SEMENTARA disambungkan ke zona-web dan zona-data khusus untuk
+# Langkah 5 dan 7, lalu dikembalikan. Catat penyambungan sementara ini pada
+# rencana pemulihan konfigurasi Anda.
+#
+# Pakai:
+#   docker compose -f docker-compose.yml -f docker-compose.pindai.yml up -d
+#   ... jalankan pemindaian ...
+#   docker compose -f docker-compose.yml -f docker-compose.pindai.yml down
+#   docker compose up -d          # kembali ke tiga zona yang terisolasi
+services:
+  admin:
+    image: alpine:latest
+    container_name: lab3-admin
+    command: sh -c "apk add --no-cache nmap nmap-scripts curl iproute2 && sleep 3600"
+    networks:
+      - zona-admin
+      - zona-web
+      - zona-data
+
+networks:
+  zona-admin:
+  zona-web:
+  zona-data:
+    internal: true
