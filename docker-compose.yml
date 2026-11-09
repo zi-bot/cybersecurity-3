@@ -36,10 +36,17 @@ services:
     container_name: lab3-db
     environment:
       # Kredensial dummy khusus laboratorium. JANGAN disalin ke laporan.
-      POSTGRES_PASSWORD: dummy_saja
+      POSTGRES_PASSWORD: dummy_saja96`829396`23745890-20`914568-6`91`457826086`966-8
     networks: [zona-data]
+
+  admin:
+    image: alpine:latest
+    container_name: lab3-admin
+    command: sh -c "apk add --no-cache nmap nmap-scripts curl iproute2 && sleep 3600"
+    networks: [zona-admin]
 
 networks:
   zona-web:
   zona-data:
     internal: true
+  zona-admin:

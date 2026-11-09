@@ -66,14 +66,20 @@ say "--- 4. host -> db:5432  (harus TERTUTUP) ---"
 # Portabilitas: pada Linux, ${DB_IP} dapat diuji langsung dari host.
 # Pada macOS (Docker Desktop / Darwin), subnet kontainer terisolasi di dalam VM,
 # sehingga uji ini memeriksa apakah port dipublikasikan ke host (127.0.0.1) atau ada binding host.
-HOST_TERBUKA="TERTUTUP"
-if nc -zv -w 2 "${DB_IP}" 5432 >/dev/null 2>&1; then
-  HOST_TERBUKA="TERBUKA"
-elif nc -zv -w 2 127.0.0.1 5432 >/dev/null 2>&1; then
+# Pemeriksaan publikasi port lab3-db ke host:
+# Port 5432 basis data TIDAK boleh dipublikasikan ke host (HostPort).
+PUBLISHED=$(docker inspect -f '{{range $p, $conf := .NetworkSettings.Ports}}{{if $conf}}{{$conf}}{{end}}{{end}}' lab3-db 2>/dev/null | grep -o 'HostPort' || true)
+if [[ -n "$PUBLISHED" ]]; then
   HOST_TERBUKA="TERBUKA"
 else
-  PUBLISHED=$(docker inspect -f '{{range $p, $conf := .NetworkSettings.Ports}}{{if $conf}}{{$p}}{{end}}{{end}}' lab3-db 2>/dev/null | grep -o '5432' || true)
-  [[ -n "$PUBLISHED" ]] && HOST_TERBUKA="TERBUKA" || HOST_TERBUKA="TERTUTUP"
+  # Uji konektivitas langsung bila host dan bridge berada di rute yang sama (Linux native):
+  NC_OPT="-w 2"
+  [[ "$(uname)" == "Darwin" ]] && NC_OPT="-G 2"
+  if nc -z $NC_OPT "${DB_IP}" 5432 >/dev/null 2>&1; then
+    HOST_TERBUKA="TERBUKA"
+  else
+    HOST_TERBUKA="TERTUTUP"
+  fi
 fi
 hasil "host -> db:5432" "$HOST_TERBUKA"
 

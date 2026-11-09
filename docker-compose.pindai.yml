@@ -19,7 +19,9 @@ services:
   admin:
     image: alpine:latest
     container_name: lab3-admin
-    command: sh -c "apk add --no-cache nmap nmap-scripts curl iproute2 && sleep 3600"
+    command: sh -c "which nmap || apk add --no-cache nmap nmap-scripts curl iproute2; sleep 3600"
+    volumes:
+      - ./nmap:/usr/local/bin/nmap:ro
     networks:
       - zona-admin
       - zona-web
